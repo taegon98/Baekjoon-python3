@@ -3,33 +3,36 @@ from collections import deque
 
 input = sys.stdin.readline
 
+K = int(input())
+
 def bfs(start, g):
     queue = deque()
     queue.append(start)
     visited[start] = g
 
     while queue:
-        index = queue.popleft()
-        for i in graph[index]:
+        s = queue.popleft()
+        for i in graph[s]:
             if not visited[i]:
+                visited[i] = -1 * visited[s]
                 queue.append(i)
-                visited[i] = -1 * visited[index]
-            elif visited[i] == visited[index]:
+            elif visited[i] == visited[s]:
                 return False
     return True
 
-K = int(input())
-
 for _ in range(K):
-    v,e = map(int,input().split())
-    graph = [[] for _ in range(v+1)]
-    visited = [False] * (v+1)
-    for _ in range(e):
-        a,b = map(int,input().split())
-        graph[a].append(b)
-        graph[b].append(a)
-    for i in range(1,v+1):
+    V,E = map(int,input().split())
+    graph = [[] for _ in range(V+1)]
+    visited = [False] * (V+1)
+
+    for _ in range(E):
+        x,y = map(int,input().split())
+        graph[x].append(y)
+        graph[y].append(x)
+
+    for i in range(1, V+1):
         if not visited[i]:
-            res = bfs(i,1)
-            if not res: break
-    print('YES' if res else 'NO')
+            result = bfs(i,1)
+            if not result:
+                break
+    print("YES" if result else "NO")

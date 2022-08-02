@@ -1,61 +1,67 @@
 import sys
 from collections import deque
+
+input = sys.stdin.readline
+
+N = int(input())
+graph = [list(map(int,input().split())) for _ in range(N)]
+fish_eat = 0    #몇 마리 먹었는지
+fish_count = 0    #몇 마리 있는지
+time = 0    #먹는데 걸린시간
+shark_size = 2    #상어 사이즈
 shark_x, shark_y = 0,0
-shark_size = 2    #초기 상어 사이즈
-eat_cnt = 0    #먹은 횟수
-fish_cnt = 0    #반복문 반복 횟수 결정
-fish_pos = []
-time = 0
-dx = (0,0,1,-1)    #좌우하상
-dy = (1,-1,0,0)
-n = int(sys.stdin.readline())
-board = [list(map(int,sys.stdin.readline().split())) for _ in range(n)]
-for i in range(n):
-    for j in range(n):
-        if 0 < board[i][j] <=6:    #물고기가 있으면 물고기 갯수 증감
-            fish_cnt +=1
-            fish_pos.append((i,j))
-        elif board[i][j] == 9:    #상어가있는 위치를 변수에 따로 저장
-            shark_x, shark_y = i,j    #상어의 크기가 9라고 생각할 수 있으므로
-board[shark_x][shark_y]=0
 
-def bfs(shark_x,shark_y):
-    q = deque()
-    q .append((shark_x,shark_y,0))    #x위치, y위치, 거리
-    dist_list = []    #탐색할때마다 초기화
-    visited = [[False]*n for _ in range(n)]
-    visited[shark_x][shark_y] = True    #시작점 방문처리
-    min_dist = int(1e9)    #가장큰수로 min값 저장
-    while q:
-        x,y,dist = q.popleft()
+dr = [-1,1,0,0]
+dc = [0,0,-1,1]
+
+for i in range(N):
+    for j in range(N):
+        if graph[i][j] == 9:    #상어면
+            shark_x, shark_y = i,j    #위치 저장
+            graph[i][j] = 0    #9인상태로 있으면 탐색때마다 9가 물고기로 간주되므로
+        elif graph[i][j] != 0:    #물고기면 카운트 증감
+            fish_count+=1
+
+def bfs(x,y):
+    visited = [[False for _ in range(N)] for _ in range(N)]
+    dist = [[0 for _ in range(N)] for _ in range(N)]
+    queue = deque()
+    queue.append([x,y])
+    temp = []    #가장 가까운 물고기 위치정보 저장 리스트
+    visited[x][y] = True
+
+    while queue:
+        X,Y = queue.popleft()
+
         for i in range(4):
-            xx = dx[i]+x
-            yy = dy[i]+y
-            if 0<=xx<n and 0<=yy<n and not visited[xx][yy]:    #범위에있고 방문하지 않았다면
-                if board[xx][yy] <= shark_size:    #같은 크기거나 작으면(지나갈 수 있거나 먹을 수 있으면)
-                    visited[xx][yy] = True
-                    if 0<board[xx][yy]<shark_size:    #먹을 수 있으면
-                        min_dist = dist    #먹을 물고기까지의 거리로 갱신
-                        dist_list.append((dist+1,xx,yy))    #거리저장 리스트에 추가
-                    if dist+1 <= min_dist:
-                        q.append((xx,yy,dist+1))
-    if dist_list:
-        dist_list.sort()    #가장 앞에있는 최소값 return 하기위해
-        return dist_list[0]
+            NX = X+dr[i]
+            NY = Y+dc[i]
+
+            if 0<=NX<N and 0<=NY<N and not visited[NX][NY]:    #범위안에있고 방문한적이 없다면
+                if graph[NX][NY] <= shark_size:    #지날 수 있으면
+                    visited[NX][NY] = True    #방문처리
+                    dist[NX][NY] = dist[X][Y] + 1    #현재 = 이전 + 1
+                    queue.append([NX,NY])
+                    if 0 < graph[NX][NY] < shark_size:    #먹을 수 있으면
+                        temp.append([dist[NX][NY],NX,NY])    #먹은 물고기의 위치 정보 저장
+
+    if temp:
+        temp.sort()    #거리순 -> 행(위쪽) -> 열(왼쪽) 정렬
+        return temp[0]
     else:
-        return False
+        return False    #비어있으면 물고기 없다
 
-while fish_cnt :
-    result = bfs(shark_x,shark_y)
-    if not result:    #먹을 수 있는 물고기가 없다면
+while fish_count:    #물고기 다 먹을때까지
+    result = bfs(shark_x, shark_y)
+    if not result:    #물고기 없으면 종료
         break
-    shark_x,shark_y = result[1],result[2]    #물고기를 먹고나서 상어 위치 저장
-    time +=result[0]    #걸린 시간(거리 1 = 시간 1초)
-    eat_cnt+=1    #먹은 횟수증가(상어 사이즈 키우기위해
-    fish_cnt-=1    #반복문 횟수 감소시키기
-    if shark_size == eat_cnt:    #넘어서면 상어 사이즈 증가
-        shark_size +=1
-        eat_cnt =0    #초기화
-    board[shark_x][shark_y] = 0    #먹은 후 -> 0으로 바꿈
+    shark_x, shark_y = result[1], result[2]    #먹은 물고기 좌표정보 저장 -> 먹은 물고기부터 탐색
+    time += result[0]    #걸린 시간(거리1 = 시간1초)
+    fish_eat += 1    #먹은횟수 1 증가
+    fish_count -=1    #물고기 1마리 먹힘
 
+    if fish_eat == shark_size:    #사이즈만큼 먹으면
+        shark_size+=1    #아기상어 사이즈 1증가
+        fish_eat = 0    #초기화
+    graph[shark_x][shark_y] = 0
 print(time)

@@ -1,28 +1,32 @@
+import sys
 from collections import deque
 
-n = int(input())
+input = sys.stdin.readline
 
-dx = [-2,-2,2,2,-1,-1,1,1]
-dy = [-1,1,-1,1,-2,2,-2,2]
+N = int(input())
+dr = [-2, -2, 2, 2, -1, -1, 1, 1]    #나이트가 이동할 수 있는 8방향
+dc = [-1, 1, -1, 1, -2, 2, -2, 2]
 
-for _ in range(n):
-    c = int(input())
-    graph = [[0 for _ in range(c)] for _ in range(c)]
+for i in range(N):    #테스트 케이스만큼 반복
+    M = int(input())    #행렬 크기 입력받음
+    start_x, start_y = map(int, input().split())    #시작지점
+    arr_x, arr_y = map(int, input().split())    #도착지점
+    graph = [[0 for _ in range(M)] for _ in range(M)]    #거리 저장 리스트
 
-    d_x, d_y = map(int,input().split())
-    a_x, a_y = map(int,input().split())
-    queue = deque()
-    queue.append((d_x, d_y))
-    while queue:
-        x, y = queue.popleft()
-        if x==a_x and y==a_y:
-            break
-        for i in range(8):
-            nx = x + dx[i]
-            ny = y + dy[i]
+    def bfs(x,y):
+        queue = deque()
+        queue.append([x,y])
 
-            if nx < 0 or ny < 0 or nx >= c or ny >= c: continue
-            if graph[nx][ny] == 0:
-                graph[nx][ny] = graph[x][y] + 1
-                queue.append((nx,ny))
-    print(graph[a_x][a_y])
+        while queue:
+            X,Y = queue.popleft()
+            if X==arr_x and Y==arr_y:    #도착하면 return
+                return graph[X][Y]
+            for i in range(8):
+                NX = X+dr[i]
+                NY = Y+dc[i]
+                #범위안에있고 방문한적이없다면(0이라면)
+                if 0<=NX<M and 0<=NY<M and graph[NX][NY] == 0:
+                    graph[NX][NY] = graph[X][Y] + 1    #방문횟수 1증가
+                    queue.append([NX,NY])
+
+    print(bfs(start_x,start_y))

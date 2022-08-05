@@ -1,28 +1,29 @@
+import sys
 from collections import deque
 
+input = sys.stdin.readline
+
 N,K = map(int,input().split())
-d = [0 for _ in range(100001)] #거리 저장
-visited = [False for _ in range(100001)] #방문 여부 저장
-queue = deque()
+dp = [-1 for _ in range(100001)]
 
 def bfs(start):
+    queue = deque()
     queue.append(start)
+    dp[start] = 0
 
     while queue:
-        p = queue.popleft()
-        if p == K:
-            return d[p]
-        if 0<=(p*2)<=100000 and not visited[p*2]:
-            d[p * 2] = d[p]
-            visited[p*2] = True
-            queue.append(p*2)
-        for i in (p-1, p+1):    #각 조건을 차례로 돌면서
-            if 0<=i<=100000 and not visited[i]:   #범위 && 방문안했으면
-                d[i] = d[p]+1    #이전방문횟수 + 1
-                visited[i] = True
+        x = queue.popleft()
+
+        if x == K:
+            print(dp[x])
+            exit(0)
+
+        if 0<=(x*2)<100001 and dp[x*2] == -1:
+            dp[x*2] = dp[x]
+            queue.append(x*2)
+
+        for i in x-1,x+1:
+            if 0<=i<100001 and dp[i] == -1:
+                dp[i] = dp[x] + 1
                 queue.append(i)
-n = bfs(N)
-print(n)
-
-
-
+bfs(N)

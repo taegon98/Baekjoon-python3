@@ -4,16 +4,13 @@ input = sys.stdin.readline
 S = list(input().rstrip())
 T = list(input().rstrip())
 
-while True:
+while T:
     if T[-1] == 'A':
-        T.pop(len(T) - 1)
+        T.pop()
     elif T[-1] == 'B':
-        T.pop(len(T) - 1)
-        if T:
-            T.reverse()
-    if not T:
-        print(0)
-        break
+        T.pop()
+        T.reverse()
     if T==S:
         print(1)
-        break
+        exit(0)
+print(0)
